@@ -1,0 +1,32 @@
+body{
+    font-size: 21px;
+    font-weight: 200;
+}
+
+.navbar, .navbar-brand {
+    font-family: 'Lato', sans-serif;
+    color:grey;
+    font-size: 20px;
+    margin: 0px;
+}
+
+#scrape, #clear{
+    font-size: 20px;
+    margin-right:3px;
+}
+
+.jumbotron, #noArticle {
+    text-align: center;
+}
+
+.card .card-header .article-link {
+    /* //color: white; */
+    display: inline-block;  
+    width: 80%;
+}
+
+.card .card-header .btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
