@@ -112,14 +112,18 @@ app.post("/unsaved/:id", function(req, res){
 app.post("/showComments/:id", function(req, res){
     var id = req.params.id;
 
-    db.Article.find({_id : id})
-        .populate("comments")
-        .then(dbArticle => {
-            res.send(dbArticle.comments);
-        })
-        .catch(err => {
-            return console.log(err);
-        });
+    // db.Article.find({_id : id})
+    //     .populate("comments")
+    //     .then(dbArticle => {
+    //         res.send(dbArticle.comments);
+    //     })
+    //     .catch(err => {
+    //         return console.log(err);
+    //     });
+
+    db.Comment.find({}).then(comments => {
+        res.send(comments);
+    });
 });
 
 app.post("/addComment/:articleID", function(req, res){

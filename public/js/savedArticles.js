@@ -39,16 +39,18 @@ $(function(){
             var ul = $(".listComments");
             if(response.length != 0){
                 ul.empty();
-                // for(var i = 0; i < response.length; i++){
-                //     var li = $("<li>");
-                //         li.attr("class", "list-group-item note");
-                //     var delButton = $("<button>");
-                //         delButton.attr("class", "btn btn-danger btn-sm")
-                //             .attr("type", "button")
-                //             .text("X");
-                //     li.append(response[i].body, delButton);
-                //     ul.append(li);
-                // }
+                for(var i = 0; i < response.length; i++){
+                    var li = $("<li>");
+                        li.attr("class", "list-group-item note");
+                    var delButton = $("<button>");
+                        delButton.attr("class", "btn btn-danger btn-sm delComment")
+                            .attr("type", "button")
+                            .attr("data-comment-id", response[i]._id)
+                            .attr("data-dismiss", "modal")
+                            .text("X");
+                    li.append(response[i].body, delButton);
+                    ul.append(li);
+                }
             }
             else{
                 ul.empty();
@@ -61,6 +63,7 @@ $(function(){
     $(".saveComment").on("click", function(){
         var articleID = $("#articleID").attr("data-article-id");
         var comment = $("#newComment").val().trim();
+        $("#newComment").val("");
         //console.log(comment);
         $.ajax({
             url: `/addComment/${articleID}`,
@@ -68,9 +71,25 @@ $(function(){
             data : {comment: comment}
         })
         .then(response => {
-            $("#newComment").val("");
+            //$("#newComment").val("");
             //console.log("savecomment", response);
         });
     });
+
+    // delete comment
+    $(".listComments").on("click", "li .delComment", function(){
+        var id = $(this).attr("data-comment-id");
+        var btn = $(this);
+        $.ajax({
+            url: `/deleteComment/${id}`,
+            method:'POST',
+        })
+        .then(response => {
+            //btn.parent().remove();
+
+            //$("#newComment").val("");
+            //console.log("savecomment", response);
+        });
+    })
 
 });
