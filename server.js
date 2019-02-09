@@ -23,51 +23,154 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 //Routes
 
 app.get("/", function(req, res){
-    res.render("pages/index");
+    db.Article.find({saved : false}).then(dbArticle => {
+        res.render("pages/index", {
+            articles : dbArticle
+        });
+    });
 });
 
 app.post("/scrape", function(req, res){
-    axios.get("https://www.nytimes.com/").then(function(response) {
-        var $ = cheerio.load(response.data);
-        var results = [];
-        $("article").each(function(i, element) {
+    db.Comment.deleteMany({}, (err)=>{
+        if (err) return console.log(err);
 
-            var title = $(element).children().children().children().children().children($("h2")).text();
-            if (title != ""){
-                var summary = $(element).children().children().children().children($("p")).text();
-                if (summary === ""){
-                    summary = $(element).children().children().children().children($("ul")).text();
-                }
-                var link = $(element).find("a").attr("href");
+        db.Article.deleteMany({}, (err)=>{
+            if (err) return console.log(err);
             
-                // Save these results in an object that we'll push into the results array we defined earlier
-                results.push({
-                    //element: $(element).children().children()
-                    headline: title,
-                    summary: summary,
-                    link: link
+            axios.get("https://www.nytimes.com/").then(function(response) {
+                var $ = cheerio.load(response.data);
+                var results = [];
+                $("article").each(function(i, element) {
+                    //console.log(i);
+                    var title = $(element).children().children().children().children().children($("h2")).text();
+                    var summary = $(element).children().children().children().children($("p")).text();
+                    if (summary === ""){
+                        summary = $(element).children().children().children().children($("ul")).text();
+                    }
+                    if (title != "" && summary != ""){
+                        var url = $(element).find("a").attr("href");
+                        
+                        // Save these results in an object that we'll push into the results array we defined earlier
+
+                        results.push({
+                            headline: title,
+                            summary: summary,
+                            url: `https://www.nytimes.com${url}`,
+                            saved: false
+                        });
+                    }
                 });
-            }
+                db.Article.insertMany(results)
+                    .then(()=>{
+                        //console.log("then");
+                        db.Article.find({saved : false})
+                            .then(dbArticle => {
+                                res.send(dbArticle);
+                            })
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
+                //console.log(results[0].element);
+            });
         });
-        //console.log(results[0].element);
-        res.send(results);
     });
 });
 
 app.get("/saved", function(req, res){
-    res.render("pages/savedArticles");
+    //res.render("pages/savedArticles");
+    db.Article.find({saved : true}).then(dbArticle => {
+        res.render("pages/savedArticles", {
+            articles : dbArticle
+        });
+    });
 });
 
 app.post("/saved/:id", function(req, res){
-    
+    var id = req.params.id;
+    db.Article.update(
+        { _id : id},
+        {saved : true},
+        () => {
+            res.send(true);
+        }
+    );
 });
 
-app.post("/addNote", function(req, res){
+app.post("/unsaved/:id", function(req, res){
+    var id = req.params.id;
+    //console.log("post",id);
+    db.Article.update(
+        { _id : id},
+        {saved : false},
+        () => {
+            res.send(true);
+        }
+    );
+});
 
+app.post("/showComments/:id", function(req, res){
+    var id = req.params.id;
+
+    db.Article.find({_id : id})
+        .populate("comments")
+        .then(dbArticle => {
+            res.send(dbArticle.comments);
+        })
+        .catch(err => {
+            return console.log(err);
+        });
+});
+
+app.post("/addComment/:articleID", function(req, res){
+    var id = req.params.articleID;
+
+    //console.log(req.body.comment);
+    db.Comment.create({body : req.body.comment})
+        .then(dbComment => {
+            //console.log(dbComment);
+            db.Article.findOneAndUpdate(
+                {_id : id}, 
+                {comments : dbComment._id} ,
+                { new : true}
+            )
+            .then(() => {
+                res.send(dbComment._id);
+            });
+        })
+        .catch(err => {
+            return console.log(err);
+        });
+});
+
+app.post("/deleteComment/:commentID", function(req, res){
+    var commentID = req.params.commentID;
+    var articleID = req.params.articleID;
+
+    db.Comment.deleteOne({_id : commentID})
+        // .then(dbComment => {
+        //     return db.Article.findOneAndDelete(
+        //         {id : articleID}, 
+        //         {$push: {comment : dbComment._id}},
+        //         { new : true}
+        //     );
+        // })
+        // .then((dbArticle) => {
+        //     res.send(true);
+        // })
+        .catch(err => {
+            return console.log(err);
+        });
 });
 
 app.post("/clear", function(req, res){
-
+    db.Comment.deleteMany({}, (err)=>{
+        if (err) return console.log(err);
+        db.Article.deleteMany({}, (err)=>{
+            if (err) return console.log(err);
+            res.send(true);
+        });
+    });
 });
 
 app.listen(PORT, function() {

@@ -22,11 +22,30 @@
         </div>
         <div class="container">
             <div class="row">
-                <div id="noArticle" class="col-12">
-                    Uh Oh. Looks like we don't have any new articles.
-                </div>
                 <div id="articles" class="col-12">
-                    
+                        <% if(articles.length != 0) { %>
+
+                            <% for(var i=0; i < articles.length; i++){ %>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3>
+                                            <a class="article-link" target="_blank" href=<%= articles[i].url %>>
+                                                <%= articles[i].headline%>
+                                            </a>
+                                            <button type="button" class="btn btn-success save" data-article-id=<%= articles[i]._id %>>
+                                                Save Article
+                                            </button>
+                                        </h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <%= articles[i].summary %>
+                                    </div>
+                                </div>
+                            <% } %>
+                        
+                        <% } else{ %>
+                            Uh Oh. Looks like we don't have any new articles.
+                        <% } %>
                 </div>
             </div>
         </div>

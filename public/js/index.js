@@ -5,8 +5,10 @@ $(function(){
             method: 'POST'
            // data: {}
         }).then((response)=>{
-        /*    if(response.length != 0){
-                $("#article").empty();
+            //console.log(response.length);
+            if(response.length != 0){
+                $("#articles").empty();
+                //$("#noArticle").remove();
                 for(var i = 0; i < response.length; i++){
                     var card = $("<div>");
                     card.attr("class", "card");
@@ -26,25 +28,46 @@ $(function(){
                     var saveButton = $("<button>");
                     saveButton.attr("type", "button")
                             .attr("class", "btn btn-success save")
-                            .attr("data-article-id", response[i].id)
+                            .attr("data-article-id", response[i]._id)
                             .append("Save Article");
 
-                    h3.append(headline).append(saveButton);
+                    h3.append(headline, saveButton);
                     cardHeader.append(h3);
 
                     var cardBody = $("<div>");
                     cardBody.attr("class", "card-body")
                             .append(response[i].summary);
 
-                    card.append(cardHeader).append(cardBody);
-                    $("#article").append(card);
+                    card.append(cardHeader, cardBody);
+                    $("#articles").append(card);
                 }
-            } */
-            console.log(response);
+            }
+            //console.log(response);
         });
     });
 
     $("#clear").on("click", function(){
+        $.ajax({
+            url: "/clear",
+            method: 'POST'
+        })
+        .then(response => {
+            //console.log(response);
+            $("#articles").empty();
+            $("#articles").text("Uh Oh. Looks like we don't have any new articles.");
+        });
+    });
 
+    $("#articles").on("click", ".card .card-header h3 .save", function(){
+        var id = $(this).attr("data-article-id");
+        var button = $(this);
+        //console.log(id);
+        $.ajax({
+            url: `/saved/${id}`,
+            method:'POST'
+        })
+        .then(response => {
+            button.parent().parent().parent().remove();
+        });
     });
 });
