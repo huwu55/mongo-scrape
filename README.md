@@ -12,6 +12,6 @@ This app also intented to let users leave comments for each saved article; comme
     1. user will be able to add/delete comments
     1. there is a population from the database collection articles to the other collection comments
 
-However, due to difficulty of building population, the notes can only be added to the database without population. 
+However, due to difficulty of building population, the notes can only be added to the database and will all notes at once without population. 
 
 Click here to the deployed app: https://mongo-scrape-huilingwu.herokuapp.com/
