@@ -22,6 +22,7 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true });
 
 //Routes
 
+// if scrape already: show all scraped articles from db that marked save: false
 app.get("/", function(req, res){
     db.Article.find({saved : false}).then(dbArticle => {
         res.render("pages/index", {
@@ -30,6 +31,7 @@ app.get("/", function(req, res){
     });
 });
 
+// scrape articles from nyt and insert them into mongo db as save: false
 app.post("/scrape", function(req, res){
     db.Comment.deleteMany({}, (err)=>{
         if (err) return console.log(err);
@@ -77,6 +79,7 @@ app.post("/scrape", function(req, res){
     });
 });
 
+// find article by id and mark it as save
 app.get("/saved", function(req, res){
     //res.render("pages/savedArticles");
     db.Article.find({saved : true}).then(dbArticle => {
@@ -86,6 +89,7 @@ app.get("/saved", function(req, res){
     });
 });
 
+// show all saved articles
 app.post("/saved/:id", function(req, res){
     var id = req.params.id;
     db.Article.update(
@@ -97,6 +101,7 @@ app.post("/saved/:id", function(req, res){
     );
 });
 
+// mark saved article as save: false
 app.post("/unsaved/:id", function(req, res){
     var id = req.params.id;
     //console.log("post",id);
@@ -109,6 +114,7 @@ app.post("/unsaved/:id", function(req, res){
     );
 });
 
+// show all comments
 app.post("/showComments/:id", function(req, res){
     var id = req.params.id;
 
@@ -126,6 +132,7 @@ app.post("/showComments/:id", function(req, res){
     });
 });
 
+// add comment
 app.post("/addComment/:articleID", function(req, res){
     var id = req.params.articleID;
 
@@ -135,7 +142,7 @@ app.post("/addComment/:articleID", function(req, res){
             //console.log(dbComment);
             db.Article.findOneAndUpdate(
                 {_id : id}, 
-                {comments : dbComment._id} ,
+                {comments : dbComment._id}, //{$push: {comment : dbComment._id}}, 
                 { new : true}
             )
             .then(() => {
@@ -147,6 +154,7 @@ app.post("/addComment/:articleID", function(req, res){
         });
 });
 
+// delete a comment
 app.post("/deleteComment/:commentID", function(req, res){
     var commentID = req.params.commentID;
     var articleID = req.params.articleID;
@@ -155,7 +163,7 @@ app.post("/deleteComment/:commentID", function(req, res){
         // .then(dbComment => {
         //     return db.Article.findOneAndDelete(
         //         {id : articleID}, 
-        //         {$push: {comment : dbComment._id}},
+        //         {pop this from comments}
         //         { new : true}
         //     );
         // })
@@ -167,6 +175,7 @@ app.post("/deleteComment/:commentID", function(req, res){
         });
 });
 
+// clear all articles and comments from db
 app.post("/clear", function(req, res){
     db.Comment.deleteMany({}, (err)=>{
         if (err) return console.log(err);
