@@ -1,7 +1,7 @@
 var express = require("express");
 var mongoose = require("mongoose");
 var logger = require("morgan");
-var axios = require("axios");
+const fetch = require('node-fetch');
 var cheerio = require("cheerio");
 var db = require("./models");
 
@@ -39,42 +39,46 @@ app.post("/scrape", function(req, res){
         db.Article.deleteMany({}, (err)=>{
             if (err) return console.log(err);
             
-            axios.get("https://www.nytimes.com/").then(function(response) {
-                var $ = cheerio.load(response.data);
-                var results = [];
-                $("article").each(function(i, element) {
-                    //console.log(i);
-                    var title = $(element).children().children().children().children().children($("h2")).text();
-                    var summary = $(element).children().children().children().children($("p")).text();
-                    if (summary === ""){
-                        summary = $(element).children().children().children().children($("ul")).text();
-                    }
-                    if (title != "" && summary != ""){
-                        var url = $(element).find("a").attr("href");
-                        
-                        // Save these results in an object that we'll push into the results array we defined earlier
+            fetch('https://www.nytimes.com/')
+                .then(res => res.text())
+                .then(response=>{
+                    //console.log(response);
+                    var results = [];
+                    var $ = cheerio.load(response);
+                    $("article").each(function(i, element){
+                        //console.log(element);
+                        var title = $(element).children().children().children().children().children($("h2")).text();
+                        var summary = $(element).children().children().children().children($("p")).text();
+                        if (summary === ""){
+                            summary = $(element).children().children().children().children($("ul")).text();
+                        }
+                        if (title != "" && summary != ""){
+                            var url = $(element).find("a").attr("href");
+                            
+                            // Save these results in an object that we'll push into the results array we defined earlier
 
-                        results.push({
-                            headline: title,
-                            summary: summary,
-                            url: `https://www.nytimes.com${url}`,
-                            saved: false
-                        });
-                    }
-                });
-                db.Article.insertMany(results)
-                    .then(()=>{
-                        //console.log("then");
-                        db.Article.find({saved : false})
-                            .then(dbArticle => {
-                                res.send(dbArticle);
-                            })
-                    })
-                    .catch(err => {
-                        console.log(err);
+                            results.push({
+                                headline: title,
+                                summary: summary,
+                                url: `https://www.nytimes.com${url}`,
+                                saved: false
+                            });
+                        }
                     });
-                //console.log(results[0].element);
-            });
+
+                    db.Article.insertMany(results)
+                        .then(()=>{
+                            //console.log("then");
+                            db.Article.find({saved : false})
+                                .then(dbArticle => {
+                                    res.send(dbArticle);
+                                })
+                        })
+                        .catch(err => {
+                            console.log(err);
+                        });
+                });
+                
         });
     });
 });
