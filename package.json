@@ -20,7 +20,7 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
     "ejs": "^2.6.1",
-    "express": "^4.16.4",
+    "express": "^4.18.2",
     "express-ejs-layouts": "^2.5.0",
     "mongoose": "^5.4.10",
     "morgan": "^1.9.1",
